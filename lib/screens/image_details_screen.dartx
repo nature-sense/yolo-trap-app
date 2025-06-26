@@ -1,0 +1,115 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:logger/logger.dart';
+
+import '../bluetooth/messages.dart';
+import 'dart:typed_data' as td;
+
+
+class ImageDetailsScreen extends StatefulWidget {
+
+  final DetectionReference reference;
+
+  const ImageDetailsScreen(this.reference, {super.key});
+
+  @override
+  State<StatefulWidget> createState() => _ImageDetailsScreenState();
+}
+
+class _ImageDetailsScreenState extends State<ImageDetailsScreen> {
+
+  //BluetoothConnection connection = Get.find();
+  late BluetoothCharacteristic imageDetailsRequestCharacteristic;
+  late BluetoothCharacteristic imageDetailsCharacteristic;
+  bool loaded = false;
+
+  late ImageSequenceHeader header;
+  late td.Uint8List imageBytes;
+
+  bool hasHeader = false;
+  bool hasImage = false;
+
+  List<int> image = [];
+  var logger = Logger();
+
+  @override
+  void initState() {
+    //imageDetailsRequestCharacteristic = connection.imageDetailsRequestCharacteristic();
+    //imageDetailsCharacteristic = connection.imageDetailsCharacteristic();
+    imageDetailsCharacteristic.setNotifyValue(true);
+    final subscribe = imageDetailsCharacteristic.onValueReceived.listen((
+        value,
+        ) {
+          if(!hasHeader) {
+            hasHeader = true;
+            logger.d("Received header");
+            final ImageSequenceHeader h = ImageSequenceHeader.fromProto(value);
+            if (mounted) {
+              setState(() {
+                header = h;
+                loaded = true;
+              });
+            }
+          } else {
+            final ImageSequenceSegment s = ImageSequenceSegment.fromProto(value);
+            logger.d("Received segment ${s.segment}");
+            image.addAll(s.data);
+
+            if(s.segment == header.segments) {
+              imageBytes = td.Uint8List.fromList(image);
+              setState(() => hasImage = true);
+            }
+          }
+    });
+    //connection.device.cancelWhenDisconnected(subscribe);
+    imageDetailsRequestCharacteristic.write(widget.reference.toProto());
+    // utf8.encode(widget.session));
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+      return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+            title: Text(widget.reference.detection),
+          ),
+          body: loaded == false ?
+            Container() :
+            Column (
+              children : [
+                Row(children: [
+                  Spacer(),
+                  Padding(
+                    padding : EdgeInsets.fromLTRB(0, 20, 0, 20),
+                    child: hasImage ?
+                        SizedBox(
+                          width: (header.metadata.width*2).toDouble(),
+                          height: (header.metadata.height*2).toDouble(),
+                          child: Image.memory(imageBytes, fit: BoxFit.fill)
+                        )
+                     : Container(
+                      width: (header.metadata.width*2).toDouble(),
+                      height: (header.metadata.height*2).toDouble(),
+                        color: Colors.grey
+                    ) ,
+                  ),
+                  Spacer()
+                  ]),
+                Expanded(child:
+                ListView( children: [
+                      ListTile(
+                          title: Text("Session", style: Theme.of(context).listTileTheme.leadingAndTrailingTextStyle),
+                          trailing: Text(header.metadata.session, style : Theme.of(context).listTileTheme.leadingAndTrailingTextStyle)
+                      ),
+                      ListTile(title: Text("Image"), trailing: Text("${header.metadata.detection.toString()}.jpg")),
+                      ListTile(title: Text("Created"), trailing: Text("${DateTime.fromMillisecondsSinceEpoch(header.metadata.created, isUtc:true)}")),
+                      ListTile(title: Text("Updated"), trailing: Text("${DateTime.fromMillisecondsSinceEpoch(header.metadata.updated, isUtc:true)}")),
+                      ListTile(title: Text("Score"), trailing: Text(header.metadata.score.toStringAsFixed(2))),
+                      ListTile(title: Text("Image Size"), trailing: Text("${header.metadata.width}px x ${header.metadata.width}px"))
+                ]),
+              )]));
+    }
+}
+
+

@@ -1,0 +1,1 @@
+protoc --dart_out=../bluetooth bluetooth.proto
