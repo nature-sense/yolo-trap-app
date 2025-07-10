@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:logger/logger.dart';
-import 'package:rxdart/rxdart.dart';
 
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
 // =============================================================================
 // Scanning Indicator
@@ -11,24 +9,32 @@ import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
 // displays a progress indicator when active
 // =============================================================================
 class ScanningIndicator extends StatefulWidget {
-  final BehaviorSubject<bool> scanStateSubject;
-  const ScanningIndicator(this.scanStateSubject, {super.key});
+  const ScanningIndicator({super.key});
 
   @override
   State<StatefulWidget> createState() => _ScanningIndicatorState();
 }
 
-class _ScanningIndicatorState extends State<ScanningIndicator> {
+class _ScanningIndicatorState extends State<ScanningIndicator> with TickerProviderStateMixin {
   bool active = false;
+  late AnimationController controller;
 
   @override
   void initState() {
-    widget.scanStateSubject.stream.listen((state) {
-      if(mounted) {
-        setState(() => active = state);
-      }
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..addListener(() {
+      setState(() {});
     });
+    controller.repeat(reverse: true);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -36,15 +42,16 @@ class _ScanningIndicatorState extends State<ScanningIndicator> {
     return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: SizedBox(width: 20, height: 20,
-          child: active ? CircularProgressIndicator(strokeWidth: 3.0) : Container()
+          child: CircularProgressIndicator(strokeWidth: 2.0, value: controller.value,
+          )
         )
     );
   }
 }
 
 class TrapChooserScreen extends StatefulWidget {
-  final BluetoothConnection connection;
-  const TrapChooserScreen(this.connection,{super.key});
+  final BluetoothManager bm;
+  const TrapChooserScreen(this.bm, {super.key});
 
   @override
   State<TrapChooserScreen> createState() => _TrapChooserScreenState();
@@ -52,22 +59,22 @@ class TrapChooserScreen extends StatefulWidget {
 
 class _TrapChooserScreenState extends State<TrapChooserScreen> {
 
-  List<ScanResult> devices = [];
+  List<String> devices = [];
   var logger = Logger();
 
   @override
   void initState() {
     logger.d("Trap chooser screen");
-    widget.connection.scanResultsStream.listen((d) {
+    widget.bm.scanStream.stream.listen((e) {
       if(mounted) {
         setState(() {
-          if (!devices.contains(d)) {
-            devices.add(d);
+          if (!devices.contains(e.deviceName)) {
+            devices.add(e.deviceName);
           }
         });
       }
     });
-    widget.connection.scan();
+    widget.bm.startScanning();
     super.initState();
   }
 
@@ -77,7 +84,7 @@ class _TrapChooserScreenState extends State<TrapChooserScreen> {
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text("Traps"),
-          actions: [ScanningIndicator(widget.connection.scanStateSubject)]
+          //actions: [ScanningIndicator()]
         ),
         body: Padding(
             padding : EdgeInsets.fromLTRB(20, 20, 20, 20),
@@ -89,17 +96,15 @@ class _TrapChooserScreenState extends State<TrapChooserScreen> {
                ListTile(
                  leading: Icon(const IconData(0xef1f, fontFamily: 'MaterialIcons'),size: 32.0,),
 
-                 title: Text(devices[index].device.advName),
+                 title: Text(devices[index]),
                  trailing: Icon(Icons.arrow_forward_ios_sharp, size: 20.0,),
                ),
-              onTap: () => widget.connection.connect(devices[index].device),
-                //Navigator.push(
-                //  context,
-                //  MaterialPageRoute(builder: (context) => TrapScreen(widget.connection)),
-                //);
-              //},
+              onTap: () {
+                widget.bm.stopScanning();
+                widget.bm.connect(devices[index]);
+              })
             )
         ),
-      )));
+      ));
   }
 }

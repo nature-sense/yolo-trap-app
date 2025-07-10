@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
-import 'package:yolo_trap_app/bluetooth/messages.dart';
 
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
+import 'package:yolo_trap_app/bluetooth/messages.dart';
 import 'package:yolo_trap_app/screens/preview_screen/preview_screen.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
 import 'button_state.dart';
 
 
 class PreviewPanel extends StatefulWidget {
-  final BluetoothConnection connection;
-  const PreviewPanel(this.connection, {super.key});
+  final BluetoothManager bm;
+  const PreviewPanel(this.bm, {super.key});
 
   @override
   State<StatefulWidget> createState() => _PreviewPanelState();
@@ -17,9 +17,6 @@ class PreviewPanel extends StatefulWidget {
 
 class _PreviewPanelState extends State<PreviewPanel> {
 
-
-
-  late BluetoothConnection connection;
   TrapState? trapState;
   ButtonState buttonState = ButtonState.buttonDisabled;
 
@@ -37,9 +34,8 @@ class _PreviewPanelState extends State<PreviewPanel> {
 
   @override
   void initState() {
-    connection = widget.connection;
 
-    connection.trapStateSubject.listen((state) {
+    widget.bm.stateNotifStream.listen((state) {
       if(mounted) {
         setState(() {
           switch (state.activeFlow) {
@@ -82,7 +78,7 @@ class _PreviewPanelState extends State<PreviewPanel> {
             onPressed: () {
               Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PreviewScreen(connection))
+                  MaterialPageRoute(builder: (context) => PreviewScreen(widget.bm))
               );},
               child: const Text('Show')
 
@@ -90,7 +86,7 @@ class _PreviewPanelState extends State<PreviewPanel> {
       case ButtonState.buttonStop :
         return FilledButton(
           style: stopStyle,
-          onPressed: () => connection.setFlow(ActiveFlow.noFlow),
+          onPressed: () => widget.bm.setFlow(ActiveFlow.noFlow),
           child: const Text('Close'),
         );
 

@@ -2,11 +2,8 @@
 import 'dart:async';
 
 import 'package:logger/logger.dart';
-import 'package:yolo_trap_app/bluetooth/bluetooth.pb.dart';
 import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
-
-import 'bluetooth_connection.dart';
-import 'messages.dart';
+import 'bluetooth_manager.dart';
 
 class ImageContext {
   Completer<ImageDesc> completer;
@@ -36,8 +33,8 @@ class ImageRequest {
 
 
 class ImageManager {
-  final BluetoothConnection connection;
-  ImageManager(this.connection);
+  final BluetoothManager bm;
+  ImageManager(this.bm);
   var logger = Logger();
 
   Map<String, ImageContext> imageStates = {};
@@ -47,8 +44,7 @@ class ImageManager {
     var key = metaToKey(meta);
     var completer = Completer<ImageDesc>();
     imageStates[key] = ImageContext(completer);
-    var msg = DetectionReferenceMessage(meta.session, meta.detection).toProto();
-    connection.imageReqCharacteristic().write(msg);
+    bm.publishImageSegments(meta.session, meta.detection);
     return completer.future;
   }
 
@@ -59,40 +55,34 @@ class ImageManager {
     logger.d("Running Image Manager");
 
     // listen on the image segment characteristic
-    connection.imageSegmentCharacteristic().setNotifyValue(true);
-    final subscribe = connection
-        .imageSegmentCharacteristic()
-        .onValueReceived
-        .listen((segment) {
-      var msg = ImageMessage.fromProto(segment);
+    bm.imageHeaderStream.stream.listen((hdr) {
       logger.d("Received image segment");
-      if (msg.header != null) {
-        var key = sessionDetectToKey(msg.header!.session, msg.header!.detection);
+      var key = sessionDetectToKey(hdr.session, hdr.detection);
+      ImageContext? ctx = imageStates[key];
+      if (ctx != null) {
+        ctx.width = hdr.width;
+        ctx.height = hdr.height;
+        ctx.numSegments = hdr.segments;
+      } else {
+        logger.w("Image header received for ${hdr.session}/${hdr
+            .detection} but no context");
+      }
+    });
+    bm.imageSegmentStream.stream.listen((seg) {
+        var key = sessionDetectToKey(seg.session, seg.detection);
         ImageContext? ctx = imageStates[key];
         if(ctx != null) {
-          ctx.width = msg.header!.width;
-          ctx.height = msg.header!.height;
-          ctx.numSegments = msg.header!.segments;
-        } else {
-          logger.w("Image header received for ${msg.header!.session}/${msg.header!.detection} but no context" );
-        }
-
-      } else if(msg.segment != null) {
-        var key = sessionDetectToKey(msg.segment!.session, msg.segment!.detection);
-        ImageContext? ctx = imageStates[key];
-        if(ctx != null) {
-          ctx.image.addAll(msg.segment!.data);
-          if(msg.segment!.segment == ctx.numSegments) {
+          ctx.image.addAll(seg.data);
+          if(seg.segment == ctx.numSegments) {
             ImageDesc image = ImageDesc(ctx.width, ctx.height, ctx.image);
             var completer = ctx.completer;
             imageStates.remove(key);
             completer.complete(image);
           }
         } else {
-          logger.w("Image segment received for ${msg.header!.session}/${msg.header!.detection} but no context" );
+          logger.w("Image segment received for ${seg.session}/${seg.detection} but no context" );
         }
       }
-    });
-    connection.device?.cancelWhenDisconnected(subscribe);
+    );
   }
 }

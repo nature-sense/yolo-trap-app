@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:yolo_trap_app/screens/preview_screen/stream_manager.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 import 'dart:typed_data';
 
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
-
-import '../../bluetooth/messages.dart';
+import 'package:yolo_trap_app/screens/preview_screen/stream_manager.dart';
+import 'package:yolo_trap_app/bluetooth/messages.dart';
 
 class PreviewScreen extends StatefulWidget {
-  final BluetoothConnection connection;
+  final BluetoothManager bm;
 
-  const PreviewScreen(this.connection, {super.key});
+  const PreviewScreen(this.bm, {super.key});
 
   @override
   State<StatefulWidget> createState() => _PreviewScreenState();
@@ -18,21 +17,19 @@ class PreviewScreen extends StatefulWidget {
 class _PreviewScreenState extends State<PreviewScreen> {
   
   late StreamManager streamManager;
-  late BluetoothConnection connection;
 
   List<int> image = [];
   
   @override
   void initState() {
-    connection = widget.connection;
-    streamManager = StreamManager(connection);
+    streamManager = StreamManager(widget.bm);
     streamManager.start();
     streamManager.imageStream.stream.listen((data) {
       if(mounted) {
         setState(() => image = data);
       }
     });
-    connection.setFlow(ActiveFlow.previewFlow);
+    widget.bm.setFlow(ActiveFlow.previewFlow);
     super.initState();
   }
 
@@ -43,7 +40,7 @@ class _PreviewScreenState extends State<PreviewScreen> {
           leading: InkWell(
               child :Icon(Icons.close),
               onTap: () {
-                connection.setFlow(ActiveFlow.noFlow);
+                widget.bm.setFlow(ActiveFlow.noFlow);
                 Navigator.pop(context);
               },
           ),

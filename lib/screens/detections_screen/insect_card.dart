@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'dart:typed_data';
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
-import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
 
-import '../../bluetooth/image_manager.dart';
+import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
+import 'package:yolo_trap_app/bluetooth/image_manager.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
 class InsectCard extends StatefulWidget {
-  final BluetoothConnection blueToothConnection;
+  final BluetoothManager bm;
   final DetectionMetadata metadata;
-  const InsectCard(this.blueToothConnection, this.metadata, {super.key});
+  const InsectCard(this.bm, this.metadata, {super.key});
 
   @override
   State<StatefulWidget> createState() => _InsectCardState();
@@ -16,23 +16,22 @@ class InsectCard extends StatefulWidget {
 
 class _InsectCardState extends State<InsectCard> {
 
-  late BluetoothConnection connection;
   late DetectionMetadata metadata;
+  late ImageManager imageManager = ImageManager(widget.bm);
   ImageDesc? imageDescr;
 
   @override
   void initState() {
-    connection = widget.blueToothConnection;
     metadata = widget.metadata;
+    imageManager = ImageManager(widget.bm);
+    imageManager.run();
     fetchImage();
     super.initState();
   }
 
   void fetchImage() async {
-    var img = await Future.wait([connection.fetchImage(metadata)]);
-    setState(() {
-      imageDescr = img[0];
-    });
+    var img = await Future.wait([imageManager.requestImage(metadata)]);
+    setState(() => imageDescr = img[0] );
   }
 
   @override

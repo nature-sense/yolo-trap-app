@@ -46,6 +46,6 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>The app uses bluetooth to connect to the trap</string>
+    <string>The app uses bluetooth to connect to the trap</string>
 </dict>
 </plist>

@@ -3,13 +3,12 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
-import 'package:yolo_trap_app/screens/detections_screen/detections_overview_screen.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
-import '../../bluetooth/messages.dart';
+import 'package:yolo_trap_app/screens/detections_screen/detections_overview_screen.dart';
+import 'package:yolo_trap_app/bluetooth/messages.dart';
 
 class Session {
   String session;
@@ -21,9 +20,8 @@ class Session {
 
 
 class SessionsListPanel extends StatefulWidget {
-  final BluetoothConnection connection;
-
-  const SessionsListPanel(this.connection,  {super.key});
+  final BluetoothManager bm;
+  const SessionsListPanel(this.bm,  {super.key});
 
   @override
   State<StatefulWidget> createState() => _SessionsListPanelState();
@@ -32,7 +30,6 @@ class SessionsListPanel extends StatefulWidget {
 class _SessionsListPanelState extends State<SessionsListPanel> {
   var logger = Logger();
 
-  late BluetoothConnection connection;
   StreamSubscription<NewSessionMessage>? newSessSubscr;
   StreamSubscription<DeleteSessionMessage>? delSessSubscr;
   StreamSubscription<SessionDetailsMessage>? sessDetailsSubscr;
@@ -43,42 +40,43 @@ class _SessionsListPanelState extends State<SessionsListPanel> {
   @override
   void initState() {
     super.initState();
-    connection = widget.connection;
 
-    connection.trapStateSubject.listen((state) {
+    widget.bm.stateNotifStream.listen((state) {
 
+      logger.d("Session list panel received state ${state.storageMounted} ${state.activeFlow}");
       if(!state.storageMounted) {
         newSessSubscr?.cancel();
         delSessSubscr?.cancel();
         sessDetailsSubscr?.cancel();
-        connection.unsubscribeSessions();
-        setState(() {
-          sessions.clear();
-          hasStorage = false;
-        });
+        //connection.unsubscribeSessions();
+        if(mounted) {
+          setState(() {
+            sessions.clear();
+            hasStorage = false;
+          });
+        };
       } else {
-        hasStorage = true;
-        newSessSubscr = connection.newSessionStream.listen((ns) {
+        setState(() => hasStorage = true );
+        newSessSubscr = widget.bm.newSessionStream.listen((ns) {
           if(mounted) {
             logger.d("New session ${ns.session}");
             setState(() => sessions[ns.session] = Session(ns.session, 0));
           }
         });
 
-        delSessSubscr = connection.deleteSessionStream.listen((ds) {
+        delSessSubscr = widget.bm.deleteSessionStream.listen((ds) {
           if(mounted) {
             logger.d("Delete Session ${ds.session}");
             setState(() => sessions.remove(ds.session));
           }
         });
 
-        sessDetailsSubscr = connection.sessionDetailsStream.listen((sd) {
+        sessDetailsSubscr = widget.bm.sessDetailsStream.listen((sd) {
           if(mounted) {
             logger.d("Session details ${sd.session}");
             setState(() => sessions[sd.session] = Session.fromMessage(sd));
           }
         });
-        connection.subscribeSessions();
       }
     });
   }
@@ -108,7 +106,7 @@ class _SessionsListPanelState extends State<SessionsListPanel> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) =>
-                        DetectionsOverviewScreen(connection, sessions.values
+                        DetectionsOverviewScreen(widget.bm, sessions.values
                             .elementAt(index)
                             .session,
                             key: Key(sessions.values
@@ -133,7 +131,7 @@ class _SessionsListPanelState extends State<SessionsListPanel> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(builder: (context) =>
-                        DetectionsOverviewScreen(connection, sessions.values
+                        DetectionsOverviewScreen(widget.bm, sessions.values
                             .elementAt(index)
                             .session,
                             key: Key(sessions.values

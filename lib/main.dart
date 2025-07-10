@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:yolo_trap_app/screens/bluetooth_screen.dart';
 import 'package:flex_color_scheme/flex_color_scheme.dart';
-
-import 'bluetooth/bluetooth_connection.dart';
+import 'bluetooth/bluetooth_manager.dart';
 import 'globals.dart';
 
 void main() {
@@ -22,12 +21,7 @@ class TrapApp extends StatelessWidget {
       theme: FlexThemeData.light(scheme: FlexScheme.shadGreen),
       darkTheme: FlexThemeData.dark(scheme: FlexScheme.shadGreen),
       themeMode: ThemeMode.system,
-
-      //theme: ThemeData(
-      //    colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-      //    useMaterial3: true
-      //),
-      home: BluetoothScreen(BluetoothConnection()),
+      home: BluetoothScreen(BluetoothManager()),
     );
   }
 }

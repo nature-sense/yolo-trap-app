@@ -3,14 +3,14 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/subjects.dart';
-import 'package:yolo_trap_app/bluetooth/bluetooth_connection.dart';
 
+import '../../bluetooth/bluetooth_manager.dart';
 import '../../bluetooth/messages.dart';
 import "button_state.dart";
 
 class TrapStatePanel extends StatefulWidget {
-  final BluetoothConnection connection;
-  const TrapStatePanel(this.connection, {super.key});
+  final BluetoothManager bm;
+  const TrapStatePanel(this.bm, {super.key});
 
   @override
   State<StatefulWidget> createState() => _TrapStatePanelState();
@@ -19,7 +19,6 @@ class TrapStatePanel extends StatefulWidget {
 class _TrapStatePanelState extends State<TrapStatePanel> {
   var logger = Logger();
 
-  late BluetoothConnection connection;
   ButtonState buttonState = ButtonState.buttonDisabled;
 
   final ButtonStyle startStyle = ElevatedButton.styleFrom(
@@ -36,8 +35,7 @@ class _TrapStatePanelState extends State<TrapStatePanel> {
 
   @override
   void initState() {
-    connection = widget.connection;
-    connection.trapStateSubject.listen((state) {
+    widget.bm.stateNotifStream.listen((state) {
       logger.d("Trap state panel received state ${state.activeFlow} ${state.storageMounted}");
       if(mounted) {
         setState(() {
@@ -82,13 +80,13 @@ class _TrapStatePanelState extends State<TrapStatePanel> {
       case ButtonState.buttonStart:
         return FilledButton(
             style: startStyle,
-            onPressed: () => connection.setFlow(ActiveFlow.detectFlow),
+            onPressed: () => widget.bm.setFlow(ActiveFlow.detectFlow),
             child: const Text('Start')
         );
       case ButtonState.buttonStop:
         return FilledButton(
           style: stopStyle,
-          onPressed: () => connection.setFlow(ActiveFlow.noFlow),
+          onPressed: () => widget.bm.setFlow(ActiveFlow.noFlow),
           child: const Text('Stop'),
         );
       default:

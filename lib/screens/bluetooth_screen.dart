@@ -1,12 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
-import 'package:yolo_trap_app/screens/connected_screen.dart';
 
-import '../bluetooth/bluetooth_connection.dart';
+import 'package:yolo_trap_app/screens/connected_screen.dart';
+import 'package:yolo_trap_app/src/interface.g.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
 class BluetoothScreen extends StatefulWidget {
-  final BluetoothConnection blueToothConnection;
-  const BluetoothScreen(this.blueToothConnection, {super.key});
+  final BluetoothManager bm;
+  BluetoothScreen(this.bm, {super.key}) {
+    var x = 1;
+  }
 
   @override
   State<StatefulWidget> createState() => _BluetoothScreenState();
@@ -18,15 +21,14 @@ class _BluetoothScreenState extends State<BluetoothScreen> {
 
   @override
   void initState() {
-    widget.blueToothConnection.bluetoothSubject.stream.listen((s) {
-      logger.d("Bluetooth state = $s");
-      setState(() => active = s );
-    });
-    widget.blueToothConnection.initBluetooth();
+    widget.bm.getBluetoothState();
+    widget.bm.bluetoothStateStream.listen((e) =>
+      setState(() => active = e == BluetoothState.online));
+
     super.initState();
   }
   @override
   Widget build(BuildContext context) {
-    return active ? ConnectedScreen(widget.blueToothConnection) : Container();
+    return active ? ConnectedScreen(widget.bm) : Container();
   }
 }

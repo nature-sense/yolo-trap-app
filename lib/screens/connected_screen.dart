@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart' hide ConnectionState;
 import 'package:logger/logger.dart';
+
 import 'package:yolo_trap_app/screens/trap_chooser_screen.dart';
-import 'package:yolo_trap_app/screens/trap_connecting_stream.dart';
+import 'package:yolo_trap_app/screens/trap_connecting_screen.dart';
 import 'package:yolo_trap_app/screens/trap_screen/trap_screen.dart';
-import '../bluetooth/bluetooth_connection.dart';
+import 'package:yolo_trap_app/src/interface.g.dart';
+import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
+
 
 class ConnectedScreen extends StatefulWidget {
-  final BluetoothConnection connection;
-  ConnectedScreen(this.connection, {super.key});
+  final BluetoothManager bm;
+  const ConnectedScreen(this.bm, {super.key});
 
   @override
   State<StatefulWidget> createState() => _ConnectedScreenState();
@@ -15,12 +18,11 @@ class ConnectedScreen extends StatefulWidget {
 
 class _ConnectedScreenState extends State<ConnectedScreen> {
   var logger = Logger();
-  ConnectionState state = ConnectionState.offline;
+  ConnectionState state = ConnectionState.disconnected;
 
   @override
   void initState() {
-    widget.connection.connectionSubject.stream.listen((s) {
-      logger.d("Connected state = $s");
+    widget.bm.connectionStream.stream.listen((s) {
         setState(() => state = s);
     });
     super.initState();
@@ -29,9 +31,9 @@ class _ConnectedScreenState extends State<ConnectedScreen> {
   @override
   Widget build(BuildContext context) {
     return switch(state) {
-      ConnectionState.offline => TrapChooserScreen(widget.connection),
-      ConnectionState.connecting => TrapConnectingScreen(widget.connection),
-      ConnectionState.connected => TrapScreen(widget.connection),
+      ConnectionState.disconnected => TrapChooserScreen(widget.bm, key: UniqueKey()),
+      ConnectionState.connecting => TrapConnectingScreen(widget.bm),
+      ConnectionState.connected => TrapScreen(widget.bm),
     };
   }
 }
