@@ -1,14 +1,15 @@
-import 'package:flutter/material.dart';
-import 'dart:typed_data';
+import 'package:flutter/material.dart' hide ImageCache;
+import 'package:watch_it/watch_it.dart';
 
 import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
-import 'package:yolo_trap_app/bluetooth/image_manager.dart';
-import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
+import 'package:yolo_trap_app/image/image_cache.dart';
+import 'dart:typed_data';
+
 
 class InsectCard extends StatefulWidget {
-  final BluetoothManager bm;
-  final DetectionMetadata metadata;
-  const InsectCard(this.bm, this.metadata, {super.key});
+  final DetectionMetadata meta;
+
+  const InsectCard(this.meta, {super.key});
 
   @override
   State<StatefulWidget> createState() => _InsectCardState();
@@ -16,34 +17,28 @@ class InsectCard extends StatefulWidget {
 
 class _InsectCardState extends State<InsectCard> {
 
-  late DetectionMetadata metadata;
-  late ImageManager imageManager = ImageManager(widget.bm);
-  ImageDesc? imageDescr;
+  Uint8List? img;
 
   @override
   void initState() {
-    metadata = widget.metadata;
-    imageManager = ImageManager(widget.bm);
-    imageManager.run();
-    fetchImage();
+    di<ImageCache>().getImage(widget.meta).then( (i) => setState(() => img = i));
     super.initState();
-  }
-
-  void fetchImage() async {
-    var img = await Future.wait([imageManager.requestImage(metadata)]);
-    setState(() => imageDescr = img[0] );
   }
 
   @override
   Widget build(BuildContext context) {
     return Card(
       child: SizedBox(
-          width: metadata.width.toDouble(),
-          height: metadata.height.toDouble(),
-          child: imageDescr == null ?
-            Container(color: Colors.white38) :
-              Image.memory(Uint8List.fromList(imageDescr!.img))
+          width: 80, //metadata.width.toDouble(),
+          height:80,
+          child : img == null ? Container(decoration: BoxDecoration(
+              border: Border.all(color: Colors.white)
+          ),) :
+          Container(decoration: BoxDecoration(
+              border: Border.all(color: Colors.white)
+          ),child: FittedBox(fit: BoxFit.contain,child: Image.memory(img!, scale: 2.0, filterQuality: FilterQuality.medium)))
       )
-    );
+      );
   }
+
 }

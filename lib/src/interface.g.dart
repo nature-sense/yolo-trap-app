@@ -33,6 +33,7 @@ enum BluetoothState {
   offline,
   online,
   notSupported,
+  unknown,
 }
 
 enum ServiceState {

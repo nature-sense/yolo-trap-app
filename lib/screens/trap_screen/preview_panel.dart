@@ -1,24 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:watch_it/watch_it.dart';
 
 import 'package:yolo_trap_app/bluetooth/messages.dart';
+import 'package:yolo_trap_app/models/trap_state_model.dart';
 import 'package:yolo_trap_app/screens/preview_screen/preview_screen.dart';
 import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
 import 'button_state.dart';
 
-
-class PreviewPanel extends StatefulWidget {
-  final BluetoothManager bm;
-  const PreviewPanel(this.bm, {super.key});
-
-  @override
-  State<StatefulWidget> createState() => _PreviewPanelState();
-}
-
-class _PreviewPanelState extends State<PreviewPanel> {
-
-  TrapState? trapState;
-  ButtonState buttonState = ButtonState.buttonDisabled;
+class PreviewPanel extends WatchingWidget {
 
   final ButtonStyle startStyle = ElevatedButton.styleFrom(
     textStyle: const TextStyle(fontSize: 14), backgroundColor: Colors.green,
@@ -33,30 +23,16 @@ class _PreviewPanelState extends State<PreviewPanel> {
   );
 
   @override
-  void initState() {
-
-    widget.bm.stateNotifStream.listen((state) {
-      if(mounted) {
-        setState(() {
-          switch (state.activeFlow) {
-            case ActiveFlow.noFlow :
-              buttonState = ButtonState.buttonStart;
-              break;
-            case ActiveFlow.previewFlow :
-              buttonState = ButtonState.buttonStop;
-              break;
-            default:
-              buttonState = ButtonState.buttonDisabled;
-          };
-        });
-        }
-    });
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final state = watchPropertyValue((TrapStateModel m) => m.activeFlow);
+
+    ButtonState buttonState = ButtonState.buttonDisabled;
+    if(state == ActiveFlow.noFlow) {
+      buttonState = ButtonState.buttonStart;
+    } else if(state == ActiveFlow.previewFlow) {
+      buttonState = ButtonState.buttonStop;
+    }
+
     return Row( children: [
       Padding(
           padding : EdgeInsets.fromLTRB(20, 10, 0, 10),
@@ -65,12 +41,12 @@ class _PreviewPanelState extends State<PreviewPanel> {
       Spacer(),
       Padding(
           padding : EdgeInsets.fromLTRB(0, 10, 20, 10),
-          child:renderButton()
+          child:renderButton(buttonState, context)
       )
     ]);
   }
 
-  Widget renderButton() {
+  Widget renderButton(ButtonState buttonState, BuildContext context) {
     switch(buttonState) {
       case ButtonState.buttonStart :
         return FilledButton(
@@ -78,7 +54,7 @@ class _PreviewPanelState extends State<PreviewPanel> {
             onPressed: () {
               Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => PreviewScreen(widget.bm))
+                  MaterialPageRoute(builder: (context) => PreviewScreen())
               );},
               child: const Text('Show')
 
@@ -86,7 +62,7 @@ class _PreviewPanelState extends State<PreviewPanel> {
       case ButtonState.buttonStop :
         return FilledButton(
           style: stopStyle,
-          onPressed: () => widget.bm.setFlow(ActiveFlow.noFlow),
+          onPressed: () => di<BluetoothManager>().setFlow(ActiveFlow.noFlow),
           child: const Text('Close'),
         );
 

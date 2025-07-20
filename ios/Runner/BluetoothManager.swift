@@ -19,13 +19,13 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
     
     
     class StateEventsHandler : BluetoothStateEventsStreamHandler {
-        var eventSink: PigeonEventSink<BluetoothState>?
-        
-        func onListen(withArguments arguments: Any?, sink: PigeonEventSink<BluetoothState>) {
+        var eventSink: PigeonEventSink<BluetoothStateEvent>?
+
+        override func onListen(withArguments arguments: Any?, sink: PigeonEventSink<BluetoothStateEvent>) {
             eventSink = sink
         }
         
-        func onEvent(state: BluetoothState) {
+        func onEvent(state: BluetoothStateEvent) {
             if let eventSink = eventSink {
                 eventSink.success(state)
             }
@@ -100,7 +100,7 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
     init(binaryMessenger : FlutterBinaryMessenger) {
         super.init()
         
-        centralManager = CBCentralManager(delegate: self, queue: nil)
+        centralManager = CBCentralManager(delegate: self, queue: nil, options: [CBCentralManagerOptionShowPowerAlertKey : true])
         
         BluetoothStateEventsStreamHandler.register(with: binaryMessenger,  instanceName: "", streamHandler: stateStream)
         ScanEventsStreamHandler.register(with: binaryMessenger,  instanceName: "", streamHandler: scanStream)
@@ -137,7 +137,7 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
         
         NSLog("bluetooth state event -> %lu", bluetoothState.rawValue)
         
-        stateStream.onEvent(state: bluetoothState)
+        stateStream.onEvent(state: BluetoothStateEvent(state:bluetoothState))
     }
     
     func getBluetoothState() throws -> BluetoothState {
@@ -186,21 +186,21 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
             NSLog("Connecting to device %@ service %@ ....", deviceId, serviceId)
             self.serviceId = serviceId
             connectionStream.onEvent(event: ConnectionEvent(deviceId: p!.name!, state: .connecting))
-            centralManager!.connect(p!)
+            connectedPeripheral = p
+            peripherals = [:]
+            centralManager!.connect(connectedPeripheral!)
         }
     }
     
     // API
     func disconnect(deviceId: String) throws {
-        let p = peripherals[deviceId]
-        if(p != nil) {
+        if deviceId == connectedPeripheral?.name {
             NSLog("Disconnecting from device %@", deviceId)
-            centralManager?.cancelPeripheralConnection(p!)
+            centralManager?.cancelPeripheralConnection(connectedPeripheral!)
         }
     }
     
     // Central manager delegate
-
     func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
         // Successfully connected. Store reference to peripheral if not already done.
         if(peripheral.name != nil) {
@@ -253,6 +253,15 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
         }
     }
     
+    // peripheral delegate
+    func peripheral( _ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]){
+        if service != nil && invalidatedServices.contains(service!) {
+            NSLog("Service gone - disconnecting peripheral")
+            service = nil
+            centralManager?.cancelPeripheralConnection(connectedPeripheral!)
+        }
+    }
+    
     //Peripheral delegate
     func peripheral(_ peripheral: CBPeripheral,  didDiscoverCharacteristicsFor service: CBService, error: (any Error)?){
         if(error == nil) {
@@ -279,15 +288,6 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
     // ========================================================================================
     // API
     func readCharacteristic(deviceId: String, service: String, characteristic: String) throws {
-        if deviceId == connectedPeripheral?.name && service == self.service!.uuid.uuidString {
-            if let char = characteristics[characteristic] {
-                if let userDescriptionDescriptor = char.descriptors?.first(where: {
-                    return $0.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString
-                }) {
-                    connectedPeripheral!.readValue(for: char)
-                }
-            }
-        }
     }
     
     // API
@@ -307,12 +307,10 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         NSLog("Wrote characteristic %@ %@" , peripheral.name!, characteristic.uuid.uuidString)
     }
-    
 
- 
     // peripheral delegate
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        NSLog("Characteristic %@ updated")
+        //NSLog("Characteristic %@ updated")
         guard let value = characteristic.value else {
             return
         }

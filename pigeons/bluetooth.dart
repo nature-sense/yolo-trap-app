@@ -8,7 +8,7 @@ import 'package:pigeon/pigeon.dart';
   swiftOptions: SwiftOptions(),
 ))
 
-enum BluetoothState { offline, online, notSupported }
+enum BluetoothState { offline, online, notSupported, unknown}
 enum ServiceState {started, stopped}
 enum ConnectionState { connected, connecting, disconnected}
 
@@ -56,6 +56,7 @@ class CharacteristicEvent {
 
 @HostApi()
 abstract class BluetoothMethodsApi {
+
   BluetoothState getBluetoothState();
 
   void startScanning(String service);

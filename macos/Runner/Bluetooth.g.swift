@@ -132,6 +132,7 @@ enum BluetoothState: Int {
   case offline = 0
   case online = 1
   case notSupported = 2
+  case unknown = 3
 }
 
 enum ServiceState: Int {

@@ -1,150 +1,114 @@
 
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:watch_it/watch_it.dart';
 import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
-import 'package:yolo_trap_app/screens/detections_screen/detections_overview_screen.dart';
-import 'package:yolo_trap_app/bluetooth/messages.dart';
+import 'package:yolo_trap_app/models/sessions_model.dart';
+import 'package:yolo_trap_app/screens/detections_screen/detections_list_screen.dart';
+import '../../models/trap_state_model.dart';
 
-class Session {
-  String session;
-  int detections;
-  Session(this.session, this.detections);
+class SessionsListPanel extends WatchingWidget {
+  final logger = Logger();
 
-  static Session fromMessage(SessionDetailsMessage msg) => Session(msg.session, msg.detections);
-}
-
-
-class SessionsListPanel extends StatefulWidget {
-  final BluetoothManager bm;
-  const SessionsListPanel(this.bm,  {super.key});
+  SessionsListPanel({super.key});
 
   @override
-  State<StatefulWidget> createState() => _SessionsListPanelState();
+  Widget build(BuildContext context) {
+
+    final TrapStateModel stateModel = watchIt();
+    switch(stateModel.storageMounted) {
+      case MountedState.notMounted:
+        return NoStorageError();
+      case MountedState.mounted:
+        return SessionList();
+      case MountedState.unknown:
+        return StorageUnknown();
+    }
+  }
 }
 
-class _SessionsListPanelState extends State<SessionsListPanel> {
-  var logger = Logger();
+class SessionList extends WatchingWidget {
 
-  StreamSubscription<NewSessionMessage>? newSessSubscr;
-  StreamSubscription<DeleteSessionMessage>? delSessSubscr;
-  StreamSubscription<SessionDetailsMessage>? sessDetailsSubscr;
-
-  Map<String, Session> sessions = {};
-  bool hasStorage = true;
-
-  @override
-  void initState() {
-    super.initState();
-
-    widget.bm.stateNotifStream.listen((state) {
-
-      logger.d("Session list panel received state ${state.storageMounted} ${state.activeFlow}");
-      if(!state.storageMounted) {
-        newSessSubscr?.cancel();
-        delSessSubscr?.cancel();
-        sessDetailsSubscr?.cancel();
-        //connection.unsubscribeSessions();
-        if(mounted) {
-          setState(() {
-            sessions.clear();
-            hasStorage = false;
-          });
-        };
-      } else {
-        setState(() => hasStorage = true );
-        newSessSubscr = widget.bm.newSessionStream.listen((ns) {
-          if(mounted) {
-            logger.d("New session ${ns.session}");
-            setState(() => sessions[ns.session] = Session(ns.session, 0));
-          }
-        });
-
-        delSessSubscr = widget.bm.deleteSessionStream.listen((ds) {
-          if(mounted) {
-            logger.d("Delete Session ${ds.session}");
-            setState(() => sessions.remove(ds.session));
-          }
-        });
-
-        sessDetailsSubscr = widget.bm.sessDetailsStream.listen((sd) {
-          if(mounted) {
-            logger.d("Session details ${sd.session}");
-            setState(() => sessions[sd.session] = Session.fromMessage(sd));
-          }
-        });
-      }
-    });
+  SessionList({super.key}) {
+    di<BluetoothManager>().publishSessionsList();
   }
 
   @override
   Widget build(BuildContext context) {
-    if(hasStorage) {
-      return ListView.builder(
-          itemCount: sessions.length,
-          shrinkWrap: true,
-          //physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            return InkWell(
-              child: ListTile(
-                  leading: Icon(
-                    const IconData(0xe9a0, fontFamily: 'MaterialIcons'),
-                    color: Colors.blueAccent,),
-                  title: Text(sessions.values
-                      .elementAt(index)
-                      .session),
-                  subtitle: Text("${sessions.values
-                      .elementAt(index)
-                      .detections} insects"),
-                  trailing: Icon(Icons.arrow_forward_ios_sharp)
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) =>
-                        DetectionsOverviewScreen(widget.bm, sessions.values
-                            .elementAt(index)
-                            .session,
-                            key: Key(sessions.values
-                                .elementAt(index)
-                                .session)),
-                    ));
-              },
-            );
-          });
-    } else {
-      return ListView.builder(
-          itemCount: 1,
-          shrinkWrap: true,
-          //physics: NeverScrollableScrollPhysics(),
-          itemBuilder: (context, index) {
-            return InkWell(
-              child: ListTile(
-                  leading: Icon(Icons.warning_amber, color: Colors.red,),
-                  title: Text("Please insert a USB stick"),
-              ),
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) =>
-                        DetectionsOverviewScreen(widget.bm, sessions.values
-                            .elementAt(index)
-                            .session,
-                            key: Key(sessions.values
-                                .elementAt(index)
-                                .session)),
-                    ));
-              },
-            );
-          });
-    }
+  final SessionsModel sessionsModel = watchIt();
+  var sessions = sessionsModel.sessions;
+    return ListView.builder(
+        itemCount: sessions.length,
+        shrinkWrap: true,
+        //physics: NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          return InkWell(
+            child: ListTile(
+                leading: Icon(
+                  const IconData(0xe9a0, fontFamily: 'MaterialIcons'),
+                  color: Colors.blueAccent,),
+                title: Text(sessions.values
+                    .elementAt(index)
+                    .sessionId),
+                subtitle: Text("${sessions.values
+                    .elementAt(index)
+                    .detections} insects"),
+                trailing: Icon(Icons.arrow_forward_ios_sharp)
+            ),
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) =>
+                      DetectionsListScreen(sessions.values
+                          .elementAt(index)
+                          .sessionId,
+                          key: Key(sessions.values
+                              .elementAt(index)
+                              .sessionId)),
+                  ));
+            },
+          );
+        });
   }
+}
 
+class NoStorageError extends StatelessWidget {
+  const NoStorageError({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+        itemCount: 1,
+        shrinkWrap: true,
+        //physics: NeverScrollableScrollPhysics(),
+        itemBuilder: (context, index) {
+          return ListTile(
+              leading: Icon(Icons.warning_amber, color: Colors.red,),
+              title: Text("Please insert a USB stick"),
+          );
+        });
+  }
+}
 
+class StorageUnknown extends StatelessWidget {
+  const StorageUnknown({super.key});
 
+  @override
+  Widget build(BuildContext context) {
+    return Column( children : [
+      Spacer(),
+      Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(width: 20, height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2.0)
+          )
+        ],
+      ),
+      Spacer()
+    ]);
+  }
 }
