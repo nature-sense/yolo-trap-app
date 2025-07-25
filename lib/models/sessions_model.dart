@@ -13,6 +13,7 @@ class SessionsModel extends ChangeNotifier {
   final Map<String, Session> _sessions = {};
   get sessions => _sessions;
 
+
   void newSession(Session session) {
     _sessions[session.sessionId] = session;
     notifyListeners();

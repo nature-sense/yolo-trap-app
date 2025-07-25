@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:watch_it/watch_it.dart';
 import '../../bluetooth/bluetooth_manager.dart';
 
 class TrapConnectingScreen extends StatelessWidget {
@@ -9,7 +10,7 @@ class TrapConnectingScreen extends StatelessWidget {
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text("") //connection.device!.advName),
+          title: Text(di<BluetoothManager>().connectedDevice!),
         ),
         body: Column( children : [
           Spacer(),

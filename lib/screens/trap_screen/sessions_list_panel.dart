@@ -39,7 +39,8 @@ class SessionList extends WatchingWidget {
   @override
   Widget build(BuildContext context) {
   final SessionsModel sessionsModel = watchIt();
-  var sessions = sessionsModel.sessions;
+  List<Session> s = sessionsModel.sessions.values.toList();
+  Iterable<Session> sessions = s.reversed;
     return ListView.builder(
         itemCount: sessions.length,
         shrinkWrap: true,
@@ -50,10 +51,10 @@ class SessionList extends WatchingWidget {
                 leading: Icon(
                   const IconData(0xe9a0, fontFamily: 'MaterialIcons'),
                   color: Colors.blueAccent,),
-                title: Text(sessions.values
+                title: Text(sessions
                     .elementAt(index)
                     .sessionId),
-                subtitle: Text("${sessions.values
+                subtitle: Text("${sessions
                     .elementAt(index)
                     .detections} insects"),
                 trailing: Icon(Icons.arrow_forward_ios_sharp)
@@ -62,10 +63,10 @@ class SessionList extends WatchingWidget {
               Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) =>
-                      DetectionsListScreen(sessions.values
+                      DetectionsListScreen(sessions
                           .elementAt(index)
                           .sessionId,
-                          key: Key(sessions.values
+                          key: Key(sessions
                               .elementAt(index)
                               .sessionId)),
                   ));

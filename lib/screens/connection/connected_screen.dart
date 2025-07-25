@@ -11,6 +11,8 @@ import 'package:yolo_trap_app/models/connection_state_nodel.dart';
 class ConnectedScreen extends WatchingWidget {
   final logger = Logger();
 
+  ConnectedScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final state = watchPropertyValue((ConnectionStateModel m) => m.state);
