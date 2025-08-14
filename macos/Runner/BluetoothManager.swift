@@ -288,7 +288,17 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
     // ========================================================================================
     // API
     func readCharacteristic(deviceId: String, service: String, characteristic: String) throws {
+
+        NSLog("Read characteristic %@ %@ %@" , characteristic, service, deviceId)
+        if deviceId == connectedPeripheral!.name && service.uppercased() == self.service!.uuid.uuidString {
+            NSLog("Lookup characteristic")
+            if let char = characteristics[characteristic.uppercased()] {
+                NSLog("Setting value")
+                self.connectedPeripheral!.readValue(for: char)
+            }
+        }
     }
+
     
     // API
     func writeCharacteristic(deviceId: String, service: String, characteristic: String, value: FlutterStandardTypedData) throws {
@@ -335,3 +345,4 @@ class BluetoothManager : NSObject, BluetoothMethodsApi, CBCentralManagerDelegate
         }
     }
 }
+

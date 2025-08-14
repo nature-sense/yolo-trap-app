@@ -12,7 +12,8 @@ class Uuids {
   static const String imageSegmentUuid       = "8bf01881-cfbe-48b2-aca6-f7f25c796943";
 
   static const String flowSetUuid            = "1027c4db-92f5-40ed-9a2d-25d53844d81c";
-  static const String stateReqUuid            = "f4a6c1ed-86ff-4c01-932f-7c810dc66b43";
-  static const String stateNotifUuid          = "facee39c-23f6-416e-8d03-e380f4e94b3e";
+  static const String stateReqUuid           = "f4a6c1ed-86ff-4c01-932f-7c810dc66b43";
+  static const String stateNotifUuid         = "facee39c-23f6-416e-8d03-e380f4e94b3e";
 
+  static const String  settingsUuid          = "826fc667-b9fb-4ad3-bbe5-607c5db043d0";
 }

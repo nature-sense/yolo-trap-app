@@ -94,14 +94,12 @@ const StateMsg$json = {
   '1': 'StateMsg',
   '2': [
     {'1': 'active_flow', '3': 1, '4': 1, '5': 5, '10': 'activeFlow'},
-    {'1': 'storage_mounted', '3': 2, '4': 1, '5': 8, '10': 'storageMounted'},
   ],
 };
 
 /// Descriptor for `StateMsg`. Decode as a `google.protobuf.DescriptorProto`.
 final $typed_data.Uint8List stateMsgDescriptor = $convert.base64Decode(
-    'CghTdGF0ZU1zZxIfCgthY3RpdmVfZmxvdxgBIAEoBVIKYWN0aXZlRmxvdxInCg9zdG9yYWdlX2'
-    '1vdW50ZWQYAiABKAhSDnN0b3JhZ2VNb3VudGVk');
+    'CghTdGF0ZU1zZxIfCgthY3RpdmVfZmxvdxgBIAEoBVIKYWN0aXZlRmxvdw==');
 
 @$core.Deprecated('Use imageHeaderMsgDescriptor instead')
 const ImageHeaderMsg$json = {
@@ -249,4 +247,24 @@ const StorageMsg$json = {
 final $typed_data.Uint8List storageMsgDescriptor = $convert.base64Decode(
     'CgpTdG9yYWdlTXNnEhgKB21vdW50ZWQYASABKAhSB21vdW50ZWQSFgoGdm9sdW1lGAIgASgJUg'
     'Z2b2x1bWUSFAoFc3BhY2UYAyABKAVSBXNwYWNl');
+
+@$core.Deprecated('Use settingsMsgDescriptor instead')
+const SettingsMsg$json = {
+  '1': 'SettingsMsg',
+  '2': [
+    {'1': 'trapname', '3': 1, '4': 1, '5': 9, '10': 'trapname'},
+    {'1': 'wifi_ssid', '3': 2, '4': 1, '5': 9, '10': 'wifiSsid'},
+    {'1': 'wifi_password', '3': 3, '4': 1, '5': 9, '10': 'wifiPassword'},
+    {'1': 'wifi_enabled', '3': 4, '4': 1, '5': 8, '10': 'wifiEnabled'},
+    {'1': 'max_sessions', '3': 5, '4': 1, '5': 5, '10': 'maxSessions'},
+    {'1': 'min_score', '3': 6, '4': 1, '5': 2, '10': 'minScore'},
+  ],
+};
+
+/// Descriptor for `SettingsMsg`. Decode as a `google.protobuf.DescriptorProto`.
+final $typed_data.Uint8List settingsMsgDescriptor = $convert.base64Decode(
+    'CgtTZXR0aW5nc01zZxIaCgh0cmFwbmFtZRgBIAEoCVIIdHJhcG5hbWUSGwoJd2lmaV9zc2lkGA'
+    'IgASgJUgh3aWZpU3NpZBIjCg13aWZpX3Bhc3N3b3JkGAMgASgJUgx3aWZpUGFzc3dvcmQSIQoM'
+    'd2lmaV9lbmFibGVkGAQgASgIUgt3aWZpRW5hYmxlZBIhCgxtYXhfc2Vzc2lvbnMYBSABKAVSC2'
+    '1heFNlc3Npb25zEhsKCW1pbl9zY29yZRgGIAEoAlIIbWluU2NvcmU=');
 

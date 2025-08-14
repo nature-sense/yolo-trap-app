@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart' hide ImageCache;
 import 'package:watch_it/watch_it.dart';
 import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
-import 'package:yolo_trap_app/image/image_cache.dart';
+import 'package:yolo_trap_app/caches/image_cache.dart';
 
 class DetectionViewerScreen extends StatefulWidget {
 

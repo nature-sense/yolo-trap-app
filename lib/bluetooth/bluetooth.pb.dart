@@ -340,11 +340,9 @@ class ImageMsg extends $pb.GeneratedMessage {
 class StateMsg extends $pb.GeneratedMessage {
   factory StateMsg({
     $core.int? activeFlow,
-    $core.bool? storageMounted,
   }) {
     final result = create();
     if (activeFlow != null) result.activeFlow = activeFlow;
-    if (storageMounted != null) result.storageMounted = storageMounted;
     return result;
   }
 
@@ -355,7 +353,6 @@ class StateMsg extends $pb.GeneratedMessage {
 
   static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'StateMsg', createEmptyInstance: create)
     ..a<$core.int>(1, _omitFieldNames ? '' : 'activeFlow', $pb.PbFieldType.O3)
-    ..aOB(2, _omitFieldNames ? '' : 'storageMounted')
     ..hasRequiredFields = false
   ;
 
@@ -384,15 +381,6 @@ class StateMsg extends $pb.GeneratedMessage {
   $core.bool hasActiveFlow() => $_has(0);
   @$pb.TagNumber(1)
   void clearActiveFlow() => $_clearField(1);
-
-  @$pb.TagNumber(2)
-  $core.bool get storageMounted => $_getBF(1);
-  @$pb.TagNumber(2)
-  set storageMounted($core.bool value) => $_setBool(1, value);
-  @$pb.TagNumber(2)
-  $core.bool hasStorageMounted() => $_has(1);
-  @$pb.TagNumber(2)
-  void clearStorageMounted() => $_clearField(2);
 }
 
 class ImageHeaderMsg extends $pb.GeneratedMessage {
@@ -1102,6 +1090,112 @@ class StorageMsg extends $pb.GeneratedMessage {
   $core.bool hasSpace() => $_has(2);
   @$pb.TagNumber(3)
   void clearSpace() => $_clearField(3);
+}
+
+class SettingsMsg extends $pb.GeneratedMessage {
+  factory SettingsMsg({
+    $core.String? trapname,
+    $core.String? wifiSsid,
+    $core.String? wifiPassword,
+    $core.bool? wifiEnabled,
+    $core.int? maxSessions,
+    $core.double? minScore,
+  }) {
+    final result = create();
+    if (trapname != null) result.trapname = trapname;
+    if (wifiSsid != null) result.wifiSsid = wifiSsid;
+    if (wifiPassword != null) result.wifiPassword = wifiPassword;
+    if (wifiEnabled != null) result.wifiEnabled = wifiEnabled;
+    if (maxSessions != null) result.maxSessions = maxSessions;
+    if (minScore != null) result.minScore = minScore;
+    return result;
+  }
+
+  SettingsMsg._();
+
+  factory SettingsMsg.fromBuffer($core.List<$core.int> data, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromBuffer(data, registry);
+  factory SettingsMsg.fromJson($core.String json, [$pb.ExtensionRegistry registry = $pb.ExtensionRegistry.EMPTY]) => create()..mergeFromJson(json, registry);
+
+  static final $pb.BuilderInfo _i = $pb.BuilderInfo(_omitMessageNames ? '' : 'SettingsMsg', createEmptyInstance: create)
+    ..aOS(1, _omitFieldNames ? '' : 'trapname')
+    ..aOS(2, _omitFieldNames ? '' : 'wifiSsid')
+    ..aOS(3, _omitFieldNames ? '' : 'wifiPassword')
+    ..aOB(4, _omitFieldNames ? '' : 'wifiEnabled')
+    ..a<$core.int>(5, _omitFieldNames ? '' : 'maxSessions', $pb.PbFieldType.O3)
+    ..a<$core.double>(6, _omitFieldNames ? '' : 'minScore', $pb.PbFieldType.OF)
+    ..hasRequiredFields = false
+  ;
+
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SettingsMsg clone() => SettingsMsg()..mergeFromMessage(this);
+  @$core.Deprecated('See https://github.com/google/protobuf.dart/issues/998.')
+  SettingsMsg copyWith(void Function(SettingsMsg) updates) => super.copyWith((message) => updates(message as SettingsMsg)) as SettingsMsg;
+
+  @$core.override
+  $pb.BuilderInfo get info_ => _i;
+
+  @$core.pragma('dart2js:noInline')
+  static SettingsMsg create() => SettingsMsg._();
+  @$core.override
+  SettingsMsg createEmptyInstance() => create();
+  static $pb.PbList<SettingsMsg> createRepeated() => $pb.PbList<SettingsMsg>();
+  @$core.pragma('dart2js:noInline')
+  static SettingsMsg getDefault() => _defaultInstance ??= $pb.GeneratedMessage.$_defaultFor<SettingsMsg>(create);
+  static SettingsMsg? _defaultInstance;
+
+  @$pb.TagNumber(1)
+  $core.String get trapname => $_getSZ(0);
+  @$pb.TagNumber(1)
+  set trapname($core.String value) => $_setString(0, value);
+  @$pb.TagNumber(1)
+  $core.bool hasTrapname() => $_has(0);
+  @$pb.TagNumber(1)
+  void clearTrapname() => $_clearField(1);
+
+  @$pb.TagNumber(2)
+  $core.String get wifiSsid => $_getSZ(1);
+  @$pb.TagNumber(2)
+  set wifiSsid($core.String value) => $_setString(1, value);
+  @$pb.TagNumber(2)
+  $core.bool hasWifiSsid() => $_has(1);
+  @$pb.TagNumber(2)
+  void clearWifiSsid() => $_clearField(2);
+
+  @$pb.TagNumber(3)
+  $core.String get wifiPassword => $_getSZ(2);
+  @$pb.TagNumber(3)
+  set wifiPassword($core.String value) => $_setString(2, value);
+  @$pb.TagNumber(3)
+  $core.bool hasWifiPassword() => $_has(2);
+  @$pb.TagNumber(3)
+  void clearWifiPassword() => $_clearField(3);
+
+  @$pb.TagNumber(4)
+  $core.bool get wifiEnabled => $_getBF(3);
+  @$pb.TagNumber(4)
+  set wifiEnabled($core.bool value) => $_setBool(3, value);
+  @$pb.TagNumber(4)
+  $core.bool hasWifiEnabled() => $_has(3);
+  @$pb.TagNumber(4)
+  void clearWifiEnabled() => $_clearField(4);
+
+  @$pb.TagNumber(5)
+  $core.int get maxSessions => $_getIZ(4);
+  @$pb.TagNumber(5)
+  set maxSessions($core.int value) => $_setSignedInt32(4, value);
+  @$pb.TagNumber(5)
+  $core.bool hasMaxSessions() => $_has(4);
+  @$pb.TagNumber(5)
+  void clearMaxSessions() => $_clearField(5);
+
+  @$pb.TagNumber(6)
+  $core.double get minScore => $_getN(5);
+  @$pb.TagNumber(6)
+  set minScore($core.double value) => $_setFloat(5, value);
+  @$pb.TagNumber(6)
+  $core.bool hasMinScore() => $_has(5);
+  @$pb.TagNumber(6)
+  void clearMinScore() => $_clearField(6);
 }
 
 

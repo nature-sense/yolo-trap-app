@@ -9,6 +9,8 @@ import 'package:yolo_trap_app/screens/trap_screen/trap_state_panel.dart';
 import 'package:yolo_trap_app/screens/trap_screen/sessions_list_panel.dart';
 import 'package:yolo_trap_app/bluetooth/bluetooth_manager.dart';
 
+import '../settings_screen/settings_screen.dart';
+
 class TrapScreen extends StatelessWidget {
   final logger = Logger();
 
@@ -20,6 +22,17 @@ class TrapScreen extends StatelessWidget {
             child :Icon(Icons.close),
               onTap: () => di<BluetoothManager>().disconnect()
             ),
+        actions: [
+          InkWell(
+              child : Padding(
+                padding: EdgeInsets.fromLTRB(0, 0, 15, 0),
+                child: Icon(Icons.settings_sharp),
+              ),
+              onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => SettingsScreen())
+              )),
+        ],
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(di<BluetoothManager>().connectedDevice!),
       ),

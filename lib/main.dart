@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart' hide ImageCache;
-import 'package:yolo_trap_app/image/image_cache.dart';
+import 'package:yolo_trap_app/caches/image_cache.dart';
 import 'package:yolo_trap_app/models/preview_frame_model.dart';
 import 'package:yolo_trap_app/models/trap_state_model.dart';
 import 'package:yolo_trap_app/screens/bluetooth/bluetooth_screen.dart';
@@ -7,6 +7,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:watch_it/watch_it.dart';
 
 import 'bluetooth/bluetooth_manager.dart';
+import 'caches/settings_cache.dart';
 import 'globals.dart';
 import 'models/bluetooth_state_model.dart';
 import 'models/connection_state_nodel.dart';
@@ -32,6 +33,7 @@ class TrapApp extends StatelessWidget {
     di.registerSingleton<SessionsModel>(SessionsModel());
     di.registerSingleton<TrapStateModel>(TrapStateModel());
     di.registerSingleton<ImageCache>(ImageCache());
+    di.registerSingleton<SettingsCache>(SettingsCache());
   }
 
   // This widget is the root of your application.

@@ -30,7 +30,6 @@ message  ImageMsg {
 
 message StateMsg {
     int32 active_flow = 1;
-    bool storage_mounted = 2;
 }
 
 message ImageHeaderMsg {
@@ -92,5 +91,14 @@ message StorageMsg {
     bool mounted = 1;
     string volume = 2;
     int32 space = 3;
+}
+
+message SettingsMsg {
+  string trapname = 1;
+  string wifi_ssid = 2;
+  string wifi_password = 3;
+  bool wifi_enabled = 4;
+  int32 max_sessions = 5;
+  float min_score = 6;
 }
 

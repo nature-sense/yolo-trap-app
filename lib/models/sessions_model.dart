@@ -1,36 +1,69 @@
-import 'package:flutter/material.dart';
+import 'dart:collection';
 
 class Session {
   String sessionId;
   int detections;
-  Session(this.sessionId, this.detections);
 
-  //static Session fromMessage(SessionDetailsMessage msg) => Session(msg.session, msg.detections);
+  Session(this.sessionId, this.detections);
 }
 
-
-class SessionsModel extends ChangeNotifier {
+class SessionsModel {
   final Map<String, Session> _sessions = {};
-  get sessions => _sessions;
+  final List<String> _sessionIds = [];
+  get sessions => _sessionIds;
 
+  Function(Session)? newSessionFunc;
+  Function()? updateSessionFunc;
+  Function(int, Session)? deleteSessionFunc;
+
+  void subscribe(Function(Session) ns, Function() us, Function(int, Session) ds) {
+    newSessionFunc = ns;
+    updateSessionFunc = us;
+    deleteSessionFunc = ds;
+  }
+
+  void unsubscribe() {
+    newSessionFunc = null;
+    updateSessionFunc = null;
+    deleteSessionFunc = null;
+  }
+
+  Session getSession(int index) => _sessions[_sessionIds[index]]!;
+  int numSessions() => _sessionIds.length;
 
   void newSession(Session session) {
     _sessions[session.sessionId] = session;
-    notifyListeners();
+    _sessionIds.insert(0, session.sessionId);
+
+    if(newSessionFunc != null) {
+      newSessionFunc!(session);
+    }
   }
 
   void deleteSession(String sessionId) {
-    _sessions.remove(sessionId);
-    notifyListeners();
+    var session = _sessions.remove(sessionId);
+    int idx = _sessionIds.indexOf(sessionId);
+    _sessionIds.removeAt(idx);
+    if(newSessionFunc != null) {
+      deleteSessionFunc!(idx, session!);
+    }
   }
 
   void updateSession(Session session) {
-    _sessions[session.sessionId] = session;
-    notifyListeners();
+    int idx = _sessionIds.indexOf(session.sessionId);
+    if(idx == -1) {
+      newSession(session);
+    } else {
+      _sessions[session.sessionId] = session;
+      if (updateSessionFunc != null) {
+        updateSessionFunc!();
+      }
+    }
   }
 
   void clear() {
     _sessions.clear();
-    notifyListeners();
+    _sessionIds.clear();
+    //notifyListeners();
   }
 }

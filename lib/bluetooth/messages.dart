@@ -40,8 +40,7 @@ enum ActiveFlow {
 
 class TrapState {
   final ActiveFlow activeFlow;
-  final bool storageMounted;
-  const TrapState(this.activeFlow, this.storageMounted);
+  const TrapState(this.activeFlow);
 }
 
 class SessionMessage {
@@ -235,18 +234,60 @@ class FrameSegmentMessage {
 
 class StateMessage {
   final ActiveFlow activeFlow;
-  final bool storageMounted;
 
-  const StateMessage(this.activeFlow, this.storageMounted);
+  const StateMessage(this.activeFlow);
 
   static StateMessage fromProto(proto) {
     var msg = bluetooth.StateMsg.fromBuffer(proto);
-    return StateMessage(ActiveFlow.fromValue(msg.activeFlow), msg.storageMounted);
+    return StateMessage(ActiveFlow.fromValue(msg.activeFlow));
   }
 
-  TrapState toTrapState() => TrapState(activeFlow, storageMounted);
+  TrapState toTrapState() => TrapState(activeFlow);
 }
 
+class SettingsMessage {
+  final String trapName;
+  final String wifiSsid;
+  final String wifiPassword;
+  final bool wifiEnabled;
+  final int maxSessions;
+  final double minScore;
 
+  SettingsMessage(
+      this.trapName,
+      this.wifiSsid,
+      this.wifiPassword,
+      this.wifiEnabled,
+      this.maxSessions,
+      this.minScore
+      );
+
+  Uint8List toProto() {
+    var msg = bluetooth.SettingsMsg(
+        trapname: trapName,
+        wifiSsid: wifiSsid,
+        wifiPassword: wifiPassword,
+        wifiEnabled: wifiEnabled,
+        maxSessions: maxSessions,
+        minScore: minScore
+    );
+    return msg.writeToBuffer();
+  }
+
+  static SettingsMessage fromProto(proto) {
+    var msg = bluetooth.SettingsMsg.fromBuffer(proto);
+    return SettingsMessage(
+      msg.trapname,
+        msg.wifiSsid,
+        msg.wifiPassword,
+        msg.wifiEnabled,
+        msg.maxSessions,
+        msg.minScore
+    );
+  }
+
+
+
+}
 
 

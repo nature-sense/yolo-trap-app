@@ -4,7 +4,7 @@ import 'package:flutter/material.dart' hide ImageCache;
 import 'package:intl/intl.dart';
 import 'package:watch_it/watch_it.dart';
 import 'package:yolo_trap_app/bluetooth/detection_metadata.dart';
-import 'package:yolo_trap_app/image/image_cache.dart';
+import 'package:yolo_trap_app/caches/image_cache.dart';
 
 import '../detection_viewer_screen/detection_viewer_screen.dart';
 

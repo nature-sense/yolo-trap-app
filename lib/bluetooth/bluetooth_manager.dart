@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:logger/logger.dart';
 import 'package:watch_it/watch_it.dart';
-import 'package:yolo_trap_app/image/image_cache.dart';
+import 'package:yolo_trap_app/bluetooth/uuids.dart';
+import 'package:yolo_trap_app/caches/image_cache.dart';
+import 'package:yolo_trap_app/caches/settings_cache.dart';
 import 'package:yolo_trap_app/models/detections_model.dart';
 import 'package:yolo_trap_app/models/trap_state_model.dart';
 
@@ -36,6 +38,7 @@ class BluetoothManager {
   static const String trapStateNotifUuid = "FACEE39C-23F6-416E-8D03-E380F4E94B3E";
 
   static const String keepAliveUuid = "5C4F3C66-44A9-4C5C-95A1-7A3A3B5F71BD";
+  static const String settingsUuid = "826FC667-B9FB-4AD3-BBE5-607C5DB043D0";
 
   BluetoothMethodsApi apiImpl = BluetoothMethodsApi();
   //late ImageManager imageManager;
@@ -117,11 +120,17 @@ class BluetoothManager {
         case trapStateNotifUuid:
           logger.d("Received trapStateNotifUuid");
           var state = StateMessage.fromProto(e.data);
-          di<TrapStateModel>().setState(state.activeFlow, state.storageMounted);
+          di<TrapStateModel>().setState(state.activeFlow);
           break;
 
         case keepAliveUuid:
         //logger.d("Keep alive");
+          break;
+
+        case settingsUuid:
+          logger.d("Received settingsUuid");
+          var settings = SettingsMessage.fromProto(e.data);
+          di<SettingsCache>().updateSettings(settings);
           break;
       }});
 
@@ -157,6 +166,15 @@ class BluetoothManager {
       );
 
       publishState();
+  }
+
+  void getSettings() async {
+    await apiImpl.readCharacteristic(connectedDevice!, serviceUuid, Uuids.settingsUuid);
+  }
+
+  void setSettings(settings) async {
+    await apiImpl.writeCharacteristic(connectedDevice!, serviceUuid, Uuids.settingsUuid, settings);
+
   }
 
   void getBluetoothState() async {
